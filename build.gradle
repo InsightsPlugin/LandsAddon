@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'net.kyori.blossom' version '1.1.0'
+}
+
+String packagePath = 'dev.frankheijden.insights.addons.lands'
+group = packagePath
+version = '1.0.0'
+description = 'LandsAddon'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://papermc.io/repo/repository/maven-public/' }
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly 'com.github.InsightsPlugin:Insights:feature~addons-SNAPSHOT'
+    compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'com.github.angeschossen:LandsAPI:5.1.13'
+}
+
+blossom {
+    replaceTokenIn 'src/main/java/dev/frankheijden/insights/addons/lands/LandsAddon.java'
+    replaceToken '{version}', version
+}
