@@ -5,10 +5,11 @@ import dev.frankheijden.insights.api.addons.InsightsAddon;
 import dev.frankheijden.insights.api.addons.Region;
 import dev.frankheijden.insights.api.objects.chunk.ChunkLocation;
 import dev.frankheijden.insights.api.objects.chunk.ChunkPart;
+import me.angeschossen.lands.api.LandsIntegration;
 import me.angeschossen.lands.api.events.ChunkDeleteEvent;
 import me.angeschossen.lands.api.events.ChunkPostClaimEvent;
-import me.angeschossen.lands.api.integration.LandsIntegration;
 import me.angeschossen.lands.api.land.ChunkCoordinate;
+import me.angeschossen.lands.api.land.Container;
 import me.angeschossen.lands.api.land.Land;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -26,19 +27,23 @@ public class LandsAddon implements InsightsAddon, Listener {
     private final LandsIntegration integration;
 
     public LandsAddon() {
-        this.integration = new LandsIntegration(InsightsPlugin.getInstance());
+        this.integration = LandsIntegration.of(InsightsPlugin.getInstance());
     }
 
     public String getKey(Land land, World world) {
-        return land.getId() + "-" + world.getName();
+        return land.getULID().toString() + "-" + world.getName();
     }
 
     public Optional<Region> adapt(Land land, World world) {
         if (land == null) return Optional.empty();
 
-        Collection<ChunkCoordinate> coordinates = land.getChunks(world);
-        if (coordinates == null || coordinates.isEmpty()) return Optional.empty();
-        return Optional.of(new LandsRegion(coordinates, getKey(land, world)));
+        Container container = land.getContainer(world);
+        if(container == null) return Optional.empty();
+
+        Collection<? extends ChunkCoordinate> coordinates = container.getChunks();
+        if (coordinates.isEmpty()) return Optional.empty();
+
+        return Optional.of(new LandsRegion(world, coordinates, getKey(land, world)));
     }
 
     @Override
@@ -58,7 +63,7 @@ public class LandsAddon implements InsightsAddon, Listener {
 
     @Override
     public Optional<Region> getRegion(Location location) {
-        return adapt(integration.getLand(
+        return adapt(integration.getLandByChunk(
                 location.getWorld(),
                 location.getBlockX() >> 4,
                 location.getBlockZ() >> 4
@@ -81,10 +86,12 @@ public class LandsAddon implements InsightsAddon, Listener {
 
     public class LandsRegion implements Region {
 
-        private final Collection<ChunkCoordinate> coordinates;
+        private final World world;
+        private final Collection<? extends ChunkCoordinate> coordinates;
         private final String key;
 
-        public LandsRegion(Collection<ChunkCoordinate> coordinates, String key) {
+        public LandsRegion(World world, Collection<? extends ChunkCoordinate> coordinates, String key) {
+            this.world = world;
             this.coordinates = coordinates;
             this.key = key;
         }
@@ -103,7 +110,7 @@ public class LandsAddon implements InsightsAddon, Listener {
         public List<ChunkPart> toChunkParts() {
             List<ChunkPart> parts = new ArrayList<>(coordinates.size());
             for (ChunkCoordinate coordinate : coordinates) {
-                parts.add(new ChunkPart(new ChunkLocation(coordinate.getWorld(), coordinate.getX(), coordinate.getZ())));
+                parts.add(new ChunkPart(new ChunkLocation(world, coordinate.getX(), coordinate.getZ())));
             }
             return parts;
         }
