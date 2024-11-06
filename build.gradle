@@ -18,7 +18,7 @@ repositories {
 dependencies {
     compileOnly 'com.github.InsightsPlugin:Insights:feature~addons-SNAPSHOT'
     compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
-    compileOnly 'com.github.angeschossen:LandsAPI:5.1.13'
+    compileOnly 'com.github.angeschossen:LandsAPI:7.1.12'
 }
 
 blossom {
